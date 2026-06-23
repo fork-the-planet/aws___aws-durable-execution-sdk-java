@@ -98,6 +98,7 @@ public final class DurableConfig {
     private final LoggerConfig loggerConfig;
     private final PollingStrategy pollingStrategy;
     private final Duration checkpointDelay;
+    private final boolean deserializeAfterSerialization;
     private final PluginRunner pluginRunner;
 
     private DurableConfig(Builder builder) {
@@ -109,6 +110,7 @@ public final class DurableConfig {
         this.loggerConfig = Objects.requireNonNullElseGet(builder.loggerConfig, LoggerConfig::defaults);
         this.pollingStrategy = Objects.requireNonNullElse(builder.pollingStrategy, PollingStrategies.Presets.DEFAULT);
         this.checkpointDelay = Objects.requireNonNullElseGet(builder.checkpointDelay, () -> Duration.ofSeconds(0));
+        this.deserializeAfterSerialization = builder.deserializeAfterSerialization;
         this.pluginRunner = builder.plugins.isEmpty() ? PluginRunner.noOp() : new PluginRunner(builder.plugins);
 
         validateConfiguration();
@@ -184,6 +186,19 @@ public final class DurableConfig {
      */
     public Duration getCheckpointDelay() {
         return checkpointDelay;
+    }
+
+    /**
+     * Gets whether serialized operation data should be deserialized immediately after serialization.
+     *
+     * <p>When enabled, the SDK returns deserialized operation results so first execution matches replay, and validates
+     * serialized exceptions before checkpointing them. Defaults to true, and custom SerDes implementations are still
+     * expected to be round-trip safe even if this behavior is disabled.
+     *
+     * @return true when serialized data should be deserialized immediately
+     */
+    public boolean shouldDeserializeAfterSerialization() {
+        return deserializeAfterSerialization;
     }
 
     /**
@@ -293,6 +308,7 @@ public final class DurableConfig {
         private LoggerConfig loggerConfig;
         private PollingStrategy pollingStrategy;
         private Duration checkpointDelay;
+        private boolean deserializeAfterSerialization = true;
         private List<DurableExecutionPlugin> plugins = new ArrayList<>();
 
         public Builder() {}
@@ -400,6 +416,20 @@ public final class DurableConfig {
          */
         public Builder withCheckpointDelay(Duration duration) {
             this.checkpointDelay = duration;
+            return this;
+        }
+
+        /**
+         * Controls whether the SDK immediately deserializes serialized operation data after serialization.
+         *
+         * <p>This is enabled by default. When enabled, operation results are returned after a SerDes round-trip so
+         * first execution returns the same value shape as replay, and exceptions are checked before checkpointing.
+         *
+         * @param deserializeAfterSerialization true to deserialize serialized data immediately
+         * @return This builder
+         */
+        public Builder withDeserializeAfterSerialization(boolean deserializeAfterSerialization) {
+            this.deserializeAfterSerialization = deserializeAfterSerialization;
             return this;
         }
 

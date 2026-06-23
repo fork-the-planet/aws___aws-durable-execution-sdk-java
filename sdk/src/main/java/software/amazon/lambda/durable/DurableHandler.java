@@ -117,6 +117,7 @@ public abstract class DurableHandler<I, O> implements RequestStreamHandler {
      *         .withDurableExecutionClient(durableClient)
      *         .withSerDes(customSerDes)  // Optional: custom SerDes for user data
      *         .withExecutorService(customExecutor)  // Optional: custom thread pool
+     *         .withDeserializeAfterSerialization(false)  // Optional: skip immediate deserialize pass
      *         .build();
      * }
      * }</pre>

@@ -88,6 +88,24 @@ class DurableConfigTest {
     }
 
     @Test
+    void testBuilder_DeserializeAfterSerializationDefaultsToTrue() {
+        var config =
+                DurableConfig.builder().withDurableExecutionClient(mockClient).build();
+
+        assertTrue(config.shouldDeserializeAfterSerialization());
+    }
+
+    @Test
+    void testBuilder_WithDeserializeAfterSerializationDisabled() {
+        var config = DurableConfig.builder()
+                .withDurableExecutionClient(mockClient)
+                .withDeserializeAfterSerialization(false)
+                .build();
+
+        assertFalse(config.shouldDeserializeAfterSerialization());
+    }
+
+    @Test
     void testBuilder_WithAllCustomComponents() {
         var config = DurableConfig.builder()
                 .withDurableExecutionClient(mockClient)
@@ -131,6 +149,7 @@ class DurableConfigTest {
         assertSame(builder, builder.withDurableExecutionClient(mockClient));
         assertSame(builder, builder.withSerDes(mockSerDes));
         assertSame(builder, builder.withExecutorService(mockExecutor));
+        assertSame(builder, builder.withDeserializeAfterSerialization(false));
     }
 
     @Test
